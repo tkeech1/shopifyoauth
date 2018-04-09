@@ -1,0 +1,75 @@
+
+service: go-oauth
+
+provider:
+  name: aws
+  runtime: go1.x
+  stage: ${opt:stage, 'dev'}
+  region: us-east-1
+  memorySize: 128
+  timeout: 10
+  iamRoleStatements: 
+    - Effect: Allow
+      Action: # Gives permission to DynamoDB tables in a specific region
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${self:provider.stage}"  
+    - Effect: Allow
+      Action: # Gives permission to query indexes
+        - dynamodb:Query
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-${self:provider.stage}/*"                
+  environment:
+    TABLE_OAUTH: ${self:service}-${self:provider.stage}
+    SCOPES: read_products,read_orders,read_draft_orders,read_customers,read_product_listings,read_price_rules,read_marketing_events,read_content,read_collection_listings,read_fulfillments,read_shipping,read_checkouts
+    ENV_AWS_REGION: ${self:provider.region}
+    JWT_KEY: ${env:JWT_KEY}
+    OAUTH_CALLBACK_URI: { "Fn::Join" : ["", [ "https://", { "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}/${self:service}" ] ]  }
+    SUCCESS_URI: http://tdkweb.io.s3-website-us-east-1.amazonaws.com/success
+    ERROR_URI: http://tdkweb.io.s3-website-us-east-1.amazonaws.com/error
+    UNINSTALL_CALLBACK_URI: { "Fn::Join" : ["", [ "https://", { "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}/${self:service}" ] ]  }
+    SHOPIFY_WEBHOOK_RESOURCE: /admin/webhooks.json
+    SHOPIFY_RECURRING_APPLICATION_CHARGES_RESOURCE: /admin/recurring_application_charges.json
+    API_KEY: ${env:SHOPIFY_API_KEY}
+    SHARED_SECRET: ${env:SHOPIFY_SHARED_SECRET}
+
+package:
+ exclude:
+   - ./**
+ include:
+   - oauth_install
+
+functions:
+  shopify-oauth:
+    handler: oauth_install
+    name: oauth_install-${self:provider.stage}
+    description: First step of the OAuth Handshake
+    events:
+      - http:
+          path: /install/{shopname}
+          method: get
+          request:
+            parameters:
+                paths:
+                  shopname: true
+          cors: true
+
+#resources:
+#  Resources:
+#    oauthTable:
+#      Type: AWS::DynamoDB::Table
+#      Properties:
+#        TableName: ${self:service}-${self:provider.stage}
+#        AttributeDefinitions:
+#          - AttributeName: shop_name
+#            AttributeType: S        
+#        KeySchema:
+#          - AttributeName: shop_name
+#            KeyType: HASH
+#        ProvisionedThroughput:
+#          ReadCapacityUnits: 1
+#          WriteCapacityUnits: 1   
