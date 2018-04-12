@@ -1,6 +1,6 @@
 package main_test
 
-import (
+/*import (
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -78,3 +78,4 @@ func TestHandlerShopifyOauth_OauthInstall(t *testing.T) {
 		}
 	}
 }
+*/
