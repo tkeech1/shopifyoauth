@@ -28,10 +28,10 @@ provider:
     SCOPES: read_products,read_orders,read_draft_orders,read_customers,read_product_listings,read_price_rules,read_marketing_events,read_content,read_collection_listings,read_fulfillments,read_shipping,read_checkouts
     ENV_AWS_REGION: ${self:provider.region}
     JWT_KEY: ${env:JWT_KEY}
-    OAUTH_CALLBACK_URI: { "Fn::Join" : ["", [ "https://", { "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}/${self:service}" ] ]  }
+    OAUTH_CALLBACK_URI: { "Fn::Join" : ["", [ "https://", { "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}/callback" ] ]  }
     SUCCESS_URI: http://tdkweb.io.s3-website-us-east-1.amazonaws.com/success
     ERROR_URI: http://tdkweb.io.s3-website-us-east-1.amazonaws.com/error
-    UNINSTALL_CALLBACK_URI: { "Fn::Join" : ["", [ "https://", { "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}/${self:service}" ] ]  }
+    UNINSTALL_CALLBACK_URI: { "Fn::Join" : ["", [ "https://", { "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}/uninstall" ] ]  }
     SHOPIFY_WEBHOOK_RESOURCE: /admin/webhooks.json
     SHOPIFY_RECURRING_APPLICATION_CHARGES_RESOURCE: /admin/recurring_application_charges.json
     API_KEY: ${env:SHOPIFY_API_KEY}
@@ -42,9 +42,10 @@ package:
    - ./**
  include:
    - oauth_install
+   - oauth_callback
 
 functions:
-  shopify-oauth:
+  oauth_install:
     handler: oauth_install
     name: oauth_install-${self:provider.stage}
     description: First step of the OAuth Handshake
@@ -57,19 +58,39 @@ functions:
                 paths:
                   shopname: true
           cors: true
+  oauth_callback:
+    handler: oauth_callback
+    name: oauth_callback-${self:provider.stage}
+    description: Callback function for the OAuth Handshake
+    events:
+      - http:
+          path: /callback
+          method: get
+          cors: true          
 
-#resources:
-#  Resources:
-#    oauthTable:
-#      Type: AWS::DynamoDB::Table
-#      Properties:
-#        TableName: ${self:service}-${self:provider.stage}
-#        AttributeDefinitions:
-#          - AttributeName: shop_name
-#            AttributeType: S        
-#        KeySchema:
-#          - AttributeName: shop_name
-#            KeyType: HASH
-#        ProvisionedThroughput:
-#          ReadCapacityUnits: 1
-#          WriteCapacityUnits: 1   
+resources:
+  Resources:
+    GatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: UNAUTHORIZED
+        RestApiId: 
+          Ref: ApiGatewayRestApi
+        StatusCode: '401'    
+    oauthTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: shop_name
+            AttributeType: S        
+        KeySchema:
+          - AttributeName: shop_name
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1   
+

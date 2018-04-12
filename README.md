@@ -3,3 +3,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/tkeech1/shopifyoauth)](https://goreportcard.com/report/github.com/tkeech1/shopifyoauth)
 
 Under construction
+
+Create Mocks
+~/go/bin/mockery -name=
