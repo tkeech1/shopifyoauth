@@ -1,6 +1,9 @@
 GO_PACKAGE_NAME=shopifyoauth
 GO_PACKAGE_PATH=github.com/tkeech1/${GO_PACKAGE_NAME}
 
+test:
+	go test ./...
+
 build-docker:
 	docker build -t ${GO_PACKAGE_NAME}:latest .
 
