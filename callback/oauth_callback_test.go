@@ -145,7 +145,7 @@ func TestHandlerShopifyOauth_OauthCallback(t *testing.T) {
 			},
 			RedirectUrl:   "SomeTestURL",
 			ResponseError: nil,
-			GetByIdError:  errors.New("An Error"),
+			GetByIdError:  nil,
 			OauthTable:    "someTable",
 			InstallState:  "123456",
 		},
