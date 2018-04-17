@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
@@ -10,63 +10,68 @@ import (
 	"github.com/tkeech1/golambda_helper"
 )
 
-type EnvInterface interface {
+type LambdaHandler struct {
+	Handler HandlerInterface
+	Oauth   golambda_helper.Oauth
+}
+
+type HandlerInterface interface {
 	Getenv(string) string
+	GetById(string, string, string, interface{}) error
+	Get(string) (*http.Response, error)
 }
 
-type EnvHandler struct {
-	Env EnvInterface
-}
+type HandlerImpl struct{}
 
-func (h *EnvHandler) Getenv(variableName string) string {
+func (h *HandlerImpl) Getenv(variableName string) string {
 	return os.Getenv(variableName)
 }
 
-func (h *EnvHandler) Handler(request events.APIGatewayProxyRequest) (golambda_helper.Response, error) {
+func (h *HandlerImpl) GetById(idName, idValue, tableName string, v interface{}) error {
+	u := golambda_helper.DynamoHandler{
+		Svc: &golambda_helper.DynamoHandler{},
+	}
+	return u.GetById(idName, idValue, tableName, v)
+}
+
+func (h *HandlerImpl) Get(s string) (*http.Response, error) {
+	return http.Get(s)
+}
+
+func (h *LambdaHandler) HandleRequest(request events.APIGatewayProxyRequest) (golambda_helper.Response, error) {
 
 	errorMessage := "An error occurred processing the request."
 
-	if shopname, ok := request.QueryStringParameters["shop"]; ok {
+	var shopname, installState string
+	var ok bool
 
-		if state, ok := request.PathParameters["state"]; ok {
-
-			if !strings.HasSuffix(shopname, "myshopify.com") {
-				return golambda_helper.GenerateError(errors.New(errorMessage))
-			}
-
-			var ShopName golambda_helper.ShopName
-			dynamoHandler := &golambda_helper.DynamoHandler{}
-			m := golambda_helper.DynamoHandler{
-				Svc: dynamoHandler,
-			}
-			err := m.GetById("id", "30174253-3caf-48e1-96d5-6595b783aa62", "goshopname-dev", &ShopName)
-			if err != nil {
-				return golambda_helper.GenerateError(err)
-			}
-
-			fmt.Println("shop:", shopname)
-			fmt.Println("state:", state)
-
-			/*if shop.state != state {
-				return golambda_helper.GenerateError(errors.New(errorMessage))
-			}
-
-			if state == getOauthByShopName(shopname); ok {
-
-			}*/
-
-			/*uuidHandler := &golambda_helper.UuidHandler{}
-			u := golambda_helper.UuidHandler{
-				Uuid: uuidHandler,
-			}
-
-			permissionUrl, err := u.Install(h.Env.Getenv("API_KEY"), h.Env.Getenv("SCOPES"), h.Env.Getenv("OAUTH_CALLBACK_URI"), shopname)
-			if err == nil {
-				return golambda_helper.GenerateRedirect(permissionUrl)
-			}*/
-		}
-		fmt.Println(shopname)
+	if shopname, ok = request.QueryStringParameters["shop"]; !ok {
+		return golambda_helper.GenerateError(errors.New(errorMessage))
 	}
 
-	return golambda_helper.GenerateError(errors.New(errorMessage))
+	if installState, ok = request.QueryStringParameters["state"]; !ok {
+		return golambda_helper.GenerateError(errors.New(errorMessage))
+	}
+
+	if !strings.HasSuffix(shopname, "myshopify.com") {
+		return golambda_helper.GenerateError(errors.New(errorMessage))
+	}
+
+	//fmt.Println("shop:", shopname)
+	//fmt.Println("state:", installState)
+
+	err := h.Handler.GetById("shop_name", shopname, h.Handler.Getenv("TABLE_OAUTH"), &h.Oauth)
+	if err != nil {
+		return golambda_helper.GenerateError(errors.New(errorMessage))
+	}
+
+	if h.Oauth.InstallState != installState {
+		return golambda_helper.GenerateError(errors.New(errorMessage))
+	}
+
+	// RequestToken
+	// Put Oauth to DB
+
+	//fmt.Println(oauth.ShopName)
+	return golambda_helper.GenerateRedirect(h.Handler.Getenv("SUCCESS_URI"))
 }

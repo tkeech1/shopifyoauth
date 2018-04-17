@@ -8,7 +8,7 @@ import (
 
 func Handler(request events.APIGatewayProxyRequest) (golambda_helper.Response, error) {
 	h := LambdaHandler{
-		Handler: &HandlerStruct{},
+		Handler: &HandlerImpl{},
 	}
 	return h.HandleRequest(request)
 }

@@ -1,6 +1,7 @@
 package main_test
 
-/*import (
+import (
+	"errors"
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -10,7 +11,7 @@ package main_test
 	"github.com/tkeech1/shopifyoauth/callback/mocks"
 )
 
-func TestHandlerShopifyOauth_OauthInstall(t *testing.T) {
+func TestHandlerShopifyOauth_OauthCallback(t *testing.T) {
 
 	tests := map[string]struct {
 		Request       events.APIGatewayProxyRequest
@@ -19,63 +20,161 @@ func TestHandlerShopifyOauth_OauthInstall(t *testing.T) {
 		EnvApiKey     string
 		EnvScope      string
 		EnvCallback   string
+		RedirectUrl   string
+		OauthTable    string
+		GetByIdError  error
+		InstallState  string
 	}{
-		"redirect": {
+		"success": {
 			Request: events.APIGatewayProxyRequest{
-				PathParameters: map[string]string{"shopname": "testshop.myshopify.com"},
+				QueryStringParameters: map[string]string{
+					"shop":  "testshop.myshopify.com",
+					"state": "12345",
+				},
 			},
 			Response: golambda_helper.Response{
 				StatusCode: 302,
 				Header: golambda_helper.Header{
-					Location: "https://testshop.myshopify.com/admin/oauth/authorize?client_id=SOMEKEY&redirect_uri=http%3A%2F%2Fmycallback.myshopify.com&scope=scope234",
+					Location: "SomeTestURL",
+				},
+			},
+			RedirectUrl:   "SomeTestURL",
+			ResponseError: nil,
+			GetByIdError:  nil,
+			OauthTable:    "someTable",
+			InstallState:  "12345",
+		},
+		"error_no_shop": {
+			Request: events.APIGatewayProxyRequest{
+				QueryStringParameters: map[string]string{
+					"shopxx": "testshop.myshopify.com",
+					"state":  "12345",
+				},
+			},
+			RedirectUrl: "SomeTestURL",
+			Response: golambda_helper.Response{
+				Body:       `{"message":"An error occurred processing the request."}`,
+				StatusCode: 400,
+				Header: golambda_helper.Header{
+					ContentType:              "application/json",
+					AccessControlAllowOrigin: "*",
 				},
 			},
 			ResponseError: nil,
-			EnvApiKey:     "SOMEKEY",
-			EnvScope:      "scope234",
-			EnvCallback:   "http://mycallback.myshopify.com",
+			GetByIdError:  nil,
+			OauthTable:    "someTable",
+			InstallState:  "12345",
 		},
-		"error_response": {
+		"error_no_state": {
 			Request: events.APIGatewayProxyRequest{
-				PathParameters: map[string]string{"x": "x"},
+				QueryStringParameters: map[string]string{
+					"shop":   "testshop.myshopify.com",
+					"statex": "12345",
+				},
 			},
+			RedirectUrl: "SomeTestURL",
 			Response: golambda_helper.Response{
-				StatusCode: 400,
 				Body:       `{"message":"An error occurred processing the request."}`,
+				StatusCode: 400,
+				Header: golambda_helper.Header{
+					ContentType:              "application/json",
+					AccessControlAllowOrigin: "*",
+				},
 			},
 			ResponseError: nil,
-			EnvApiKey:     "SOMEKEY",
-			EnvScope:      "scope234",
-			EnvCallback:   "http://mycallback.myshopify.com",
+			GetByIdError:  nil,
+			OauthTable:    "someTable",
+			InstallState:  "12345",
+		},
+		"error_not_a_shopify_url": {
+			Request: events.APIGatewayProxyRequest{
+				QueryStringParameters: map[string]string{
+					"shop":  "testshop.myshopifyx.com",
+					"state": "12345",
+				},
+			},
+			Response: golambda_helper.Response{
+				Body:       `{"message":"An error occurred processing the request."}`,
+				StatusCode: 400,
+				Header: golambda_helper.Header{
+					ContentType:              "application/json",
+					AccessControlAllowOrigin: "*",
+				},
+			},
+			RedirectUrl:   "SomeTestURL",
+			ResponseError: nil,
+			GetByIdError:  nil,
+			OauthTable:    "someTable",
+			InstallState:  "12345",
+		},
+		"error_getbyid_error": {
+			Request: events.APIGatewayProxyRequest{
+				QueryStringParameters: map[string]string{
+					"shop":  "testshop.myshopify.com",
+					"state": "12345",
+				},
+			},
+			Response: golambda_helper.Response{
+				Body:       `{"message":"An error occurred processing the request."}`,
+				StatusCode: 400,
+				Header: golambda_helper.Header{
+					ContentType:              "application/json",
+					AccessControlAllowOrigin: "*",
+				},
+			},
+			RedirectUrl:   "SomeTestURL",
+			ResponseError: nil,
+			GetByIdError:  errors.New("An Error"),
+			OauthTable:    "someTable",
+			InstallState:  "12345",
+		},
+		"error_state_does_not_match": {
+			Request: events.APIGatewayProxyRequest{
+				QueryStringParameters: map[string]string{
+					"shop":  "testshop.myshopify.com",
+					"state": "12345",
+				},
+			},
+			Response: golambda_helper.Response{
+				Body:       `{"message":"An error occurred processing the request."}`,
+				StatusCode: 400,
+				Header: golambda_helper.Header{
+					ContentType:              "application/json",
+					AccessControlAllowOrigin: "*",
+				},
+			},
+			RedirectUrl:   "SomeTestURL",
+			ResponseError: nil,
+			GetByIdError:  errors.New("An Error"),
+			OauthTable:    "someTable",
+			InstallState:  "123456",
 		},
 	}
 
 	for name, test := range tests {
 		t.Logf("Running test case: %s", name)
 
-		envInterface := &mocks.EnvInterface{}
-		envInterface.
-			On("Getenv", "API_KEY").
-			Return(test.EnvApiKey)
-		envInterface.
-			On("Getenv", "OAUTH_CALLBACK_URI").
-			Return(test.EnvCallback)
-		envInterface.
-			On("Getenv", "SCOPES").
-			Return(test.EnvScope)
+		handlerInt := &mocks.HandlerInterface{}
+		oauth := golambda_helper.Oauth{
+			InstallState: test.InstallState,
+		}
+		handlerInt.
+			On("Getenv", "SUCCESS_URI").
+			Return(test.RedirectUrl)
+		handlerInt.
+			On("Getenv", "TABLE_OAUTH").
+			Return(test.OauthTable)
+		handlerInt.
+			On("GetById", "shop_name", test.Request.QueryStringParameters["shop"], test.OauthTable, &oauth).
+			Return(test.GetByIdError)
 
-		h := &main.EnvHandler{
-			Env: envInterface,
+		h := main.LambdaHandler{
+			Handler: handlerInt,
+			Oauth:   oauth,
 		}
 
-		response, err := h.Handler(test.Request)
-		assert.Equal(t, true, true)
+		response, err := h.HandleRequest(test.Request)
+		assert.Equal(t, test.Response, response)
 		assert.Equal(t, test.ResponseError, err)
-		//assert.Equal(t, test.Response.StatusCode, response.StatusCode)
-		// exclude checking the state since it changes with every incovation
-		if response.StatusCode == 302 {
-			//assert.Equal(t, test.Response.Header.Location, response.Header.Location[:136])
-		}
 	}
 }
-*/

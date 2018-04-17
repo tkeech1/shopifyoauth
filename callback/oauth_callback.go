@@ -7,11 +7,11 @@ import (
 )
 
 func Handler(request events.APIGatewayProxyRequest) (golambda_helper.Response, error) {
-	envHandler := &EnvHandler{}
-	h := EnvHandler{
-		Env: envHandler,
+	h := LambdaHandler{
+		Handler: &HandlerImpl{},
+		Oauth:   golambda_helper.Oauth{},
 	}
-	return h.Handler(request)
+	return h.HandleRequest(request)
 }
 
 func main() {

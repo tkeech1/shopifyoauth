@@ -47,7 +47,7 @@ func TestHandlerShopifyOauth_OauthInstall(t *testing.T) {
 			time:                  time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
 			Oauth: golambda_helper.Oauth{
 				ShopName:        "testshop.myshopify.com",
-				State:           "FakeState",
+				InstallState:    "FakeState",
 				InstallDateTime: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC).Format(time.RFC3339),
 			},
 		},
@@ -73,7 +73,7 @@ func TestHandlerShopifyOauth_OauthInstall(t *testing.T) {
 			time:                  time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
 			Oauth: golambda_helper.Oauth{
 				ShopName:        "testshop.myshopify.com",
-				State:           "FAKESTATE",
+				InstallState:    "FAKESTATE",
 				InstallDateTime: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC).Format(time.RFC3339),
 			},
 		},
@@ -99,7 +99,7 @@ func TestHandlerShopifyOauth_OauthInstall(t *testing.T) {
 			time:                  time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
 			Oauth: golambda_helper.Oauth{
 				ShopName:        "testshop.myshopify.com",
-				State:           "FakeState",
+				InstallState:    "FakeState",
 				InstallDateTime: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC).Format(time.RFC3339),
 			},
 		},
@@ -125,7 +125,7 @@ func TestHandlerShopifyOauth_OauthInstall(t *testing.T) {
 			time:                  time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
 			Oauth: golambda_helper.Oauth{
 				ShopName:        "testshop.myshopify.com",
-				State:           "FakeState",
+				InstallState:    "FakeState",
 				InstallDateTime: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC).Format(time.RFC3339),
 			},
 		},
