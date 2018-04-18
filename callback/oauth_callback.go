@@ -9,7 +9,7 @@ import (
 func Handler(request events.APIGatewayProxyRequest) (golambda_helper.Response, error) {
 	h := LambdaHandler{
 		Handler: &HandlerImpl{},
-		Oauth:   golambda_helper.Oauth{},
+		Oauth:   &golambda_helper.Oauth{},
 	}
 	return h.HandleRequest(request)
 }
