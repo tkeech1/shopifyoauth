@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/stretchr/testify/assert"
 	"github.com/tkeech1/golambda_helper"
+	"github.com/tkeech1/goshopify"
 	main "github.com/tkeech1/shopifyoauth/callback"
 	"github.com/tkeech1/shopifyoauth/callback/mocks"
 )
@@ -219,7 +220,7 @@ func TestHandlerShopifyOauth_OauthCallback(t *testing.T) {
 		t.Logf("Running test case: %s", name)
 
 		handlerInt := &mocks.HandlerInterface{}
-		oauth := &golambda_helper.Oauth{
+		oauth := &goshopify.Oauth{
 			InstallState: test.InstallState,
 		}
 		handlerInt.

@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/stretchr/testify/assert"
 	"github.com/tkeech1/golambda_helper"
+	"github.com/tkeech1/goshopify"
 	main "github.com/tkeech1/shopifyoauth/install"
 	"github.com/tkeech1/shopifyoauth/install/mocks"
 )
@@ -21,7 +22,7 @@ func TestHandlerShopifyOauth_OauthInstall(t *testing.T) {
 		GenerateStateError    error
 		DynamoError           error
 		time                  time.Time
-		Oauth                 golambda_helper.Oauth
+		Oauth                 goshopify.Oauth
 		EnvApiKey             string
 		EnvScope              string
 		EnvCallback           string
@@ -45,7 +46,7 @@ func TestHandlerShopifyOauth_OauthInstall(t *testing.T) {
 			EnvCallback:           "http://mycallback.myshopify.com",
 			EnvTableOauth:         "TABLE_OAUTH",
 			time:                  time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
-			Oauth: golambda_helper.Oauth{
+			Oauth: goshopify.Oauth{
 				ShopName:        "testshop.myshopify.com",
 				InstallState:    "FakeState",
 				InstallDateTime: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC).Format(time.RFC3339),
@@ -71,7 +72,7 @@ func TestHandlerShopifyOauth_OauthInstall(t *testing.T) {
 			EnvCallback:           "http://mycallback.myshopify.com",
 			EnvTableOauth:         "TABLE_OAUTH",
 			time:                  time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
-			Oauth: golambda_helper.Oauth{
+			Oauth: goshopify.Oauth{
 				ShopName:        "testshop.myshopify.com",
 				InstallState:    "FAKESTATE",
 				InstallDateTime: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC).Format(time.RFC3339),
@@ -97,7 +98,7 @@ func TestHandlerShopifyOauth_OauthInstall(t *testing.T) {
 			EnvCallback:           "http://mycallback.myshopify.com",
 			EnvTableOauth:         "TABLE_OAUTH",
 			time:                  time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
-			Oauth: golambda_helper.Oauth{
+			Oauth: goshopify.Oauth{
 				ShopName:        "testshop.myshopify.com",
 				InstallState:    "FakeState",
 				InstallDateTime: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC).Format(time.RFC3339),
@@ -123,7 +124,7 @@ func TestHandlerShopifyOauth_OauthInstall(t *testing.T) {
 			EnvCallback:           "http://mycallback.myshopify.com",
 			EnvTableOauth:         "TABLE_OAUTH",
 			time:                  time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
-			Oauth: golambda_helper.Oauth{
+			Oauth: goshopify.Oauth{
 				ShopName:        "testshop.myshopify.com",
 				InstallState:    "FakeState",
 				InstallDateTime: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC).Format(time.RFC3339),

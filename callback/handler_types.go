@@ -16,7 +16,7 @@ import (
 
 type LambdaHandler struct {
 	Handler HandlerInterface
-	Oauth   *golambda_helper.Oauth
+	Oauth   *goshopify.Oauth
 }
 
 type HandlerInterface interface {

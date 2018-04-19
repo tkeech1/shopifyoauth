@@ -56,7 +56,7 @@ func (h *LambdaHandler) HandleRequest(request events.APIGatewayProxyRequest) (go
 
 		permissionUrl := goshopify.CreatePermissionUrl(h.Handler.Getenv("API_KEY"), h.Handler.Getenv("SCOPES"), h.Handler.Getenv("OAUTH_CALLBACK_URI"), installState, shopname)
 
-		oauth := golambda_helper.Oauth{
+		oauth := goshopify.Oauth{
 			ShopName:        shopname,
 			InstallState:    installState,
 			InstallDateTime: h.Handler.Now().Format(time.RFC3339),
